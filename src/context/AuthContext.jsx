@@ -7,16 +7,28 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', data.token);
-    setUser(data);
+   const login = async (email, password) => {
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: error.message };
+    }
   };
 
   const register = async (name, email, password) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+    try {
+     const { data } = await api.post('/auth/register', { name, email, password });
     localStorage.setItem('token', data.token);
-    setUser(data);
+    setUser(data.user);
+    return {success: true};
+  } catch (error) {
+    console.error('Registration error:', error);
+    return {success: false, message: error.message};
+  }
   };
 
   const logout = () => {
@@ -35,3 +47,4 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+export default AuthContext;
