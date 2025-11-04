@@ -1,11 +1,18 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Poppins', 'Inter', 'sans-serif'],
+      },
+      colors: {
+        primary: '#6C63FF', // color base SmartCart
+        secondary: '#FFD166',
+      },
+    },
   },
   plugins: [],
 }
