@@ -2,7 +2,8 @@ import { createContext, useState, useEffect } from "react";
 import api from "../api/axiosConfig";
 
 
-export const CartContext = createContext();
+
+ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
@@ -16,13 +17,12 @@ export const CartProvider = ({ children }) => {
             //si backend devuelve {success, data:cart} adaptar
             const data = res.data?.data ?? res.data;
             setCart(data);
-        } catch (err)
-{
-    console.errorr('[Cart] getCart error:', err.response.data ?? err.message);
-    setCart(null);
-} finally {
-    setLoadingCart(false);
-}
+        } catch (err) {
+            console.error('[Cart] getCart error:', err.response?.data ?? err.message);
+            setCart(null);
+        } finally {
+            setLoadingCart(false);
+        }
     };
 
     //Agregar producto al carrito
@@ -53,13 +53,13 @@ export const CartProvider = ({ children }) => {
     };
 
     //Eliminar un producto del carrito
-    const removeFormCart = async (productId) => {
+    const removeFromCart = async (productId) => {
         try {
             // Endpoint DELETE /api/cart/remove
             await api.delete(`/cart/remove/${productId}`);
             await getCart();
         } catch (err) {
-            console.error('[Cart] removeFormCart error:', err.response.data?.data ?? err.message);
+            console.error('[Cart] removeFromCart error:', err.response.data?.data ?? err.message);
             throw err;
         }
     };
@@ -103,8 +103,8 @@ export const CartProvider = ({ children }) => {
                 loadingCart,
                 getCart,
                 addToCart,
-                updateQuantity,
-                removeFormCart,
+                updateCartItem,
+                removeFromCart,
                 clearCart,
                 createOrder,    
             }}
@@ -112,9 +112,8 @@ export const CartProvider = ({ children }) => {
             {children}
         </CartContext.Provider>
     );
-}
-
-
+};
+export default CartContext;
 
 
 
