@@ -3,9 +3,10 @@ import Products from './pages/Products'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Cart from './pages/Cart'
-//import Orders from './pages/Orders'
+import Orders from './pages/Orders'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext.jsx'
+import Profile from './pages/Profile.jsx'
 
 
 function App() {
@@ -16,11 +17,12 @@ function App() {
         <CartProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Products />} />
+              <Route path="/products" element={<Products />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              {/*<Route path="/orders" element={<Orders />} /> */}
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/profile" element={<Profile />} /> 
             </Routes>
           </BrowserRouter>
         </CartProvider>
