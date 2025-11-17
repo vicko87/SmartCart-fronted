@@ -36,13 +36,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,120 +1,111 @@
-import { createContext, useState, useEffect } from "react";
-import api from "../api/axiosConfig";
+import { createContext, useState, useEffect } from 'react';
+import api from '../api/axiosConfig';
 
-
-
- const CartContext = createContext();
+const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
-    const [loadingCart, setLoadingCart] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    //Obtener el carrito de backend
-    const getCart = async () => {
+    // Obtener el carrito del backend
+    const fetchCart = async () => {
         try {
-            setLoadingCart(true);
-            const res = await api.get("/cart");
-            //si backend devuelve {success, data:cart} adaptar
-            const data = res.data?.data ?? res.data;
-            setCart(data);
-        } catch (err) {
-            console.error('[Cart] getCart error:', err.response?.data ?? err.message);
-            setCart(null);
+            setLoading(true);
+            const res = await api.get('/cart');
+            setCart(res.data.data || res.data);
+        } catch (error) {
+            console.error('Error fetching cart:', error);
+            if (error.response?.status !== 401) {
+                setCart(null);
+            }
         } finally {
-            setLoadingCart(false);
+            setLoading(false);
         }
     };
 
-    //Agregar producto al carrito
+    // Agregar producto al carrito
     const addToCart = async (productId, quantity = 1) => {
         try {
-                // Endpoint POST /api/cart/add
-                const res = await api.post("/cart/add", { productId, quantity });
-                const data = res.data?.data ?? res.data;
-                //refrescar el carrito para mantener consistencia del servidor
-                await getCart();
-                return data;
-        } catch (err) {
-            console.error('[Cart] addToCart error:', err.response.data?.data ?? err.message);
-            throw err;
+            console.log('🛒 Adding to cart:', { productId, quantity });
+            
+            const res = await api.post('/cart', {
+                productId,
+                quantity
+            });
+
+            console.log('✅ Cart updated:', res.data);
+            
+            // Actualizar el carrito local
+            await fetchCart();
+            
+            return res.data;
+        } catch (error) {
+            console.error('❌ Error adding to cart:', error);
+            console.error('❌ Error response:', error.response?.data);
+            throw error;
         }
     };
 
-    //Actualizar cantidad de un producto en el carrito
+    // Actualizar cantidad
     const updateCartItem = async (productId, quantity) => {
         try {
-            // Endpoint PUT /api/cart/update
-            await api.put(`/cart/update/${productId}`, { quantity });
-            await getCart();
-        } catch (err) {
-            console.error('[Cart] updateCartItem error:', err.response.data?.data ?? err.message);
-            throw err;
+            const res = await api.put('/cart', {
+                productId,
+                quantity
+            });
+            await fetchCart();
+            return res.data;
+        } catch (error) {
+            console.error('Error updating cart:', error);
+            throw error;
         }
     };
 
-    //Eliminar un producto del carrito
+    // Eliminar del carrito
     const removeFromCart = async (productId) => {
         try {
-            // Endpoint DELETE /api/cart/remove
-            await api.delete(`/cart/remove/${productId}`);
-            await getCart();
-        } catch (err) {
-            console.error('[Cart] removeFromCart error:', err.response.data?.data ?? err.message);
-            throw err;
+            await api.delete(`/cart/${productId}`);
+            await fetchCart();
+        } catch (error) {
+            console.error('Error removing from cart:', error);
+            throw error;
         }
     };
 
-    //Vaciar el carrito
+    // Vaciar carrito
     const clearCart = async () => {
         try {
-            // Endpoint DELETE /api/cart/clear
-            await api.delete("/cart/clear");
-            await getCart();
-        } catch (err) {
-            console.error('[Cart] clearCart error:', err.response.data?.data ?? err.message);
-            throw err;  
+            await api.delete('/cart');
+            await fetchCart();
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            throw error;
         }
     };
 
-    //crear orden checkout
-    const createOrder = async () => {
-        try {
-            // Endpoint POST /api/orders
-            const res = await api.post('/orders/create');
-            const data = res.data?.data ?? res.data;
-            //vaciar carrito despues de crear orden
-            await clearCart();
-            return data;
-        } catch (err) {
-            console.error('[Cart] createOrder error:', err.response.data?.data ?? err.message);
-            throw err;
-        }
-    };
-
+    // Cargar carrito al montar el componente
     useEffect(() => {
-    //cargar carrito al montar (si hay token en localStorage)
-    getCart();
-}, []);
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetchCart();
+        }
+    }, []);
+
+    const value = {
+        cart,
+        loading,
+        addToCart,
+        updateCartItem,
+        removeFromCart,
+        clearCart,
+        fetchCart
+    };
 
     return (
-        <CartContext.Provider
-            value={{
-                cart,
-                loadingCart,
-                getCart,
-                addToCart,
-                updateCartItem,
-                removeFromCart,
-                clearCart,
-                createOrder,    
-            }}
-        >
+        <CartContext.Provider value={value}>
             {children}
         </CartContext.Provider>
     );
 };
+
 export default CartContext;
-
-
-
-        

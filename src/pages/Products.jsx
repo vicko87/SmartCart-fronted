@@ -1,23 +1,39 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../api/axiosConfig';
-import CartContext from '../context/CartContext';
+import ProductCard from '../components/ProductCard';
 
 function Products() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
-    const { addToCart } = useContext(CartContext);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
+                console.log('🔍 Fetching products...');
+                
                 const res = await api.get('/products');
-                // Adaptar según respuesta del backend
-                setProducts(res.data.data || res.data);
+                console.log('✅ Full response:', res);
+                console.log('✅ Response data:', res.data);
+                
+                // Extraer productos correctamente
+                let productsData = [];
+                if (res.data.data) {
+                    productsData = res.data.data;
+                } else if (Array.isArray(res.data)) {
+                    productsData = res.data;
+                } else if (res.data.products) {
+                    productsData = res.data.products;
+                }
+                
+                console.log('📦 Products extracted:', productsData);
+                console.log('📦 Products count:', productsData.length);
+                
+                setProducts(productsData);
             } catch (err) {
-                console.error('Error loading products:', err);
+                console.error('❌ Error loading products:', err);
+                console.error('❌ Error response:', err.response);
                 setError('Error al cargar productos');
             } finally {
                 setLoading(false);
@@ -27,20 +43,13 @@ function Products() {
         fetchProducts();
     }, []);
 
-    const handleAddToCart = async (productId) => {
-        try {
-            await addToCart(productId, 1);
-            alert('¡Producto agregado al carrito!');
-        } catch (err) {
-            console.error('Error adding to cart:', err);
-            alert('Error al agregar al carrito');
-        }
-    };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-xl text-gray-600">Cargando productos...</div>
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-xl text-gray-600">Cargando alimentos frescos...</p>
+                </div>
             </div>
         );
     }
@@ -53,74 +62,30 @@ function Products() {
         );
     }
 
+    console.log('🎨 Rendering products. Count:', products.length);
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">
-                🛍️ Productos Disponibles
-            </h1>
+            {/* Header */}
+            <div className="mb-10 text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    🛒 Alimentos Frescos
+                </h1>
+                <p className="text-gray-600">
+                    Los mejores alimentos para tu hogar
+                </p>
+            </div>
             
             {products.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
-                    <p className="text-xl">No hay productos disponibles</p>
+                <div className="text-center py-20">
+                    <div className="text-8xl mb-4">🥬</div>
+                    <p className="text-2xl text-gray-500 mb-4">No hay alimentos disponibles</p>
+                    <p className="text-gray-400">Vuelve pronto para ver alimentos frescos</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {products.map(product => (
-                        <div 
-                            key={product._id} 
-                            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                        >
-                            {/* Imagen del producto */}
-                            <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                                {product.image ? (
-                                    <img 
-                                        src={product.image} 
-                                        alt={product.name}
-                                        className="h-full w-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-6xl">📦</span>
-                                )}
-                            </div>
-                            
-                            {/* Información del producto */}
-                            <div className="p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-                                    {product.name}
-                                </h3>
-                                
-                                {product.description && (
-                                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                                        {product.description}
-                                    </p>
-                                )}
-                                
-                                {/* Precio y Stock */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="text-2xl font-bold text-green-600">
-                                        ${parseFloat(product.price).toFixed(2)}
-                                    </span>
-                                    <span className={`text-sm px-2 py-1 rounded ${
-                                        product.stock > 10 
-                                            ? 'bg-green-100 text-green-800' 
-                                            : product.stock > 0 
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : 'bg-red-100 text-red-800'
-                                    }`}>
-                                        {product.stock > 0 ? `Stock: ${product.stock}` : 'Sin stock'}
-                                    </span>
-                                </div>
-                                
-                                {/* Botón agregar al carrito */}
-                                <button
-                                    onClick={() => handleAddToCart(product._id)}
-                                    disabled={product.stock === 0}
-                                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-                                >
-                                    {product.stock === 0 ? '❌ Sin stock' : '🛒 Agregar al carrito'}
-                                </button>
-                            </div>
-                        </div>
+                        <ProductCard key={product._id} product={product} />
                     ))}
                 </div>
             )}
