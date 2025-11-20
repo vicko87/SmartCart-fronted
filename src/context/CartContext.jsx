@@ -28,7 +28,7 @@ export const CartProvider = ({ children }) => {
         try {
             console.log('🛒 Adding to cart:', { productId, quantity });
             
-            const res = await api.post('/cart', {
+            const res = await api.post('/cart/add', {
                 productId,
                 quantity
             });
