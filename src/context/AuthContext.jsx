@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
-      setUser(data);
+      setUser(data.user || data);
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     try {
      const { data } = await api.post('/auth/register', { name, email, password });
     localStorage.setItem('token', data.token);
-    setUser(data.user);
+    setUser(data.user || data);
     return {success: true};
   } catch (error) {
     console.error('Registration error:', error);
@@ -42,8 +42,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) setUser(null);
-  }, []);
+    if (token) {
+      api.get('/auth/me')
+        .then(({ data }) => setUser(data.user || data))
+        .catch(() => {
+          localStorage.removeItem('token');
+          setUser(null);
+        });
+    } else {
+      setUser(null);
+    }
+}, []);
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>

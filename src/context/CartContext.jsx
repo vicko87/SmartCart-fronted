@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axiosConfig';
 
 const CartContext = createContext();
@@ -8,7 +8,7 @@ export const CartProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
 
     // Obtener el carrito del backend
-    const fetchCart = async () => {
+    const fetchCart =  useCallback (async () => {
         try {
             setLoading(true);
             const res = await api.get('/cart');
@@ -21,7 +21,7 @@ export const CartProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     // Agregar producto al carrito
     const addToCart = async (productId, quantity = 1) => {
@@ -49,8 +49,7 @@ export const CartProvider = ({ children }) => {
     // Actualizar cantidad
     const updateCartItem = async (productId, quantity) => {
         try {
-            const res = await api.put('/cart', {
-                productId,
+            const res = await api.put(`/cart/item/${productId}`, {
                 quantity
             });
             await fetchCart();
@@ -64,7 +63,7 @@ export const CartProvider = ({ children }) => {
     // Eliminar del carrito
     const removeFromCart = async (productId) => {
         try {
-            await api.delete(`/cart/${productId}`);
+            await api.delete(`/cart/item/${productId}`);
             await fetchCart();
         } catch (error) {
             console.error('Error removing from cart:', error);
@@ -75,7 +74,7 @@ export const CartProvider = ({ children }) => {
     // Vaciar carrito
     const clearCart = async () => {
         try {
-            await api.delete('/cart');
+            await api.delete('/cart/clear');
             await fetchCart();
         } catch (error) {
             console.error('Error clearing cart:', error);
@@ -89,6 +88,7 @@ export const CartProvider = ({ children }) => {
         if (token) {
             fetchCart();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const value = {

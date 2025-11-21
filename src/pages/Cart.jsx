@@ -26,6 +26,7 @@ const Cart = () => {
     };
 
     loadCart();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const handleQuantityChange = async (productId, newQuantity) => {
@@ -38,8 +39,8 @@ const Cart = () => {
     }
   };
 
-  const handleRemove = async (productId) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+ const handleRemove = async (productId) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
       try {
         await removeFromCart(productId);
       } catch (error) {
@@ -62,7 +63,7 @@ const Cart = () => {
     );
   }
 
-  const cartItems = cart?.products || [];
+  const cartItems = cart?.items || [];
   const total = cartItems.reduce((sum, item) => sum +
     (item.product?.price || 0) * item.quantity, 0);
 
